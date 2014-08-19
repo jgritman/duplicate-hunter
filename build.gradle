@@ -29,6 +29,7 @@ dependencies {
     compile "org.codehaus.groovy:groovy"
     compile "org.springframework.boot:spring-boot-starter-web"
     compile "org.springframework.boot:spring-boot-starter-actuator"
+    compile 'no.priv.garshol.duke:duke:1.2'
     testCompile "org.springframework.boot:spring-boot-starter-test"
 }
 

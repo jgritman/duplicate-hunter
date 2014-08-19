@@ -16,10 +16,21 @@
 
 package com.helpscout
 
+import groovy.transform.Canonical
+
+import java.util.Collections.SynchronizedList
+
+import javax.annotation.PostConstruct
+import javax.annotation.PreDestroy
+
+import no.priv.garshol.duke.ConfigLoader
+import no.priv.garshol.duke.Processor
+import no.priv.garshol.duke.Record
+import no.priv.garshol.duke.RecordImpl
+import no.priv.garshol.duke.matchers.AbstractMatchListener
+
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -34,50 +45,91 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class Application {
 
-    Map<UUID,Customer> emailsToCustomers = [:]
+    Map<UUID,Customer> idsToCustomers = [:]
+    final List<CustomerSimilarity> similarities = [].asSynchronized()
+    Processor dukeProcessor
+
+    @PostConstruct
+    def init() {
+        def config = ConfigLoader.load('classpath:duke-customer.xml')
+        dukeProcessor = new Processor(config)
+        dukeProcessor.addMatchListener(new SimilarityMatchListener(similarities))
+    }
+
+    @PreDestroy
+    def destroy() {
+        dukeProcessor.close()
+    }
 
     /**
      * Not requested but for debugging purposes
      */
     @RequestMapping(value="/customers", method=RequestMethod.GET)
     def getAllCustomers() {
-        emailsToCustomers.values()
+        idsToCustomers.values()
     }
 
     @RequestMapping(value="/customers", method=RequestMethod.POST)
     def addCustomer(@RequestBody Customer customer) {
         UUID id = UUID.randomUUID()
         customer.id = id
-        emailsToCustomers[id] = customer
+        idsToCustomers[id] = customer
+        deduplicate(customer)
         new ResponseEntity(customer, HttpStatus.CREATED)
     }
 
     @RequestMapping(value="/customers/{id}", method=RequestMethod.PUT)
     def updateCustomer(@PathVariable UUID id, @RequestBody Customer customer) {
-        if (!emailsToCustomers[id]) {
+        if (!idsToCustomers[id]) {
             return new ResponseEntity(HttpStatus.NOT_FOUND)
         }
         customer.id = id // allow it to be blank in the body
-        emailsToCustomers[id] = customer
+        idsToCustomers[id] = customer
         new ResponseEntity(customer, HttpStatus.OK)
     }
 
     @RequestMapping(value="/customers/{id}", method=RequestMethod.DELETE)
     def deleteCustomer(@PathVariable UUID id) {
-        if (!emailsToCustomers[id]) {
+        if (!idsToCustomers[id]) {
             return new ResponseEntity(HttpStatus.NOT_FOUND)
         }
-        emailsToCustomers.remove(id)
+        idsToCustomers.remove(id)
         new ResponseEntity(HttpStatus.NO_CONTENT)
     }
 
     @RequestMapping(value="customerSimilarity", method=RequestMethod.GET)
     def getSimilarCustomers() {
-         []
+        similarities
+    }
+
+    private deduplicate(Customer customer) {
+        RecordImpl record = new RecordImpl()
+        record.addValue('id', customer.id.toString())
+        record.addValue('name', customer.name)
+        record.addValue('address1', customer.address1)
+        record.addValue('email', customer.email)
+        record.addValue('zip', customer.zip)
+        dukeProcessor.deduplicate([record])
     }
 
     static void main(String[] args) throws Exception {
         SpringApplication.run(Application.class, args)
+    }
+
+}
+
+@Canonical
+class SimilarityMatchListener extends AbstractMatchListener {
+
+    Collection similarities
+
+    void matches(Record r1, Record r2, double confidence) {
+        def newDup = new CustomerSimilarity(
+            UUID.fromString(r1.getValue('id')),
+            UUID.fromString(r2.getValue('id')),
+            new BigDecimal(confidence))
+        similarities << newDup
+        println newDup
     }
 
 }

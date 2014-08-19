@@ -7,9 +7,7 @@ class Customer {
 
     UUID id
 
-    String firstName
-
-    String lastName
+    String name
 
     String email
 
