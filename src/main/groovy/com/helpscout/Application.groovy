@@ -1,5 +1,7 @@
 package com.helpscout
 
+import java.math.MathContext
+
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
@@ -111,7 +113,7 @@ class Application {
             def customer2Id = UUID.fromString(r2.getValue('id'))
             if (idsToCustomers[customer1Id] && idsToCustomers[customer2Id]) {
                 def newDup = new CustomerSimilarity(customer1Id, customer2Id,
-                        new BigDecimal(confidence, ))
+                        new BigDecimal(confidence, new MathContext(4)))
                 potentialDuplicates << newDup
             }
         }
