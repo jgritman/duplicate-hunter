@@ -1,3 +1,4 @@
+<!-- This xml taken completely from https://github.com/larsga/Duke/wiki/HowItWorks -->
 <duke>
   <object class="no.priv.garshol.duke.comparators.WeightedLevenshtein$DefaultWeightEstimator"
           name="estimator">
