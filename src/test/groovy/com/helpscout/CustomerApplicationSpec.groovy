@@ -92,7 +92,7 @@ class CustomerApplicationSpec extends Specification {
         app.potentialDuplicates.size() == 0
     }
 
-    def 'should unflag when update reduplicates the record'() {
+    def 'should only flag once when update reduplicates the record'() {
         when:
         def customerResult = app.addCustomer(MORRIS)
         app.addCustomer(MORRIS)
