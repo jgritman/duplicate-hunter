@@ -1,0 +1,43 @@
+<duke>
+  <object class="no.priv.garshol.duke.comparators.WeightedLevenshtein$DefaultWeightEstimator"
+          name="estimator">
+    <param name="digit-weight" value="10.0"/>
+  </object>
+  <object class="no.priv.garshol.duke.comparators.WeightedLevenshtein"
+          name="address-comp">
+    <param name="estimator" value="estimator"/>
+  </object>
+
+  <schema>
+    <threshold>0.732</threshold>
+
+    <property type="id">
+      <name>id</name>
+    </property>
+    <property>
+      <name>name</name>
+      <comparator>no.priv.garshol.duke.comparators.QGramComparator</comparator>
+      <low>0.35</low>
+      <high>0.88</high>
+    </property>
+    <property>
+      <name>address1</name>
+      <comparator>address-comp</comparator>
+      <low>0.25</low>
+      <high>0.65</high>
+    </property>
+    <property>
+      <name>email</name>
+      <comparator>no.priv.garshol.duke.comparators.ExactComparator</comparator>
+      <low>0.4</low>
+      <high>0.8</high>
+    </property>
+    <property>
+      <name>zip</name>
+      <comparator>no.priv.garshol.duke.comparators.ExactComparator</comparator>
+      <low>0.45</low>
+      <high>0.6</high>
+    </property>
+  </schema>
+
+</duke>

@@ -1,24 +1,4 @@
-/*
- * Copyright 2012-2013 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.helpscout
-
-import groovy.transform.Canonical
-
-import java.util.Collections.SynchronizedList
 
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
@@ -45,15 +25,19 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class Application {
 
-    Map<UUID,Customer> idsToCustomers = [:]
-    final List<CustomerSimilarity> similarities = [].asSynchronized()
+    Map<UUID,Customer> idsToCustomers = [:].asSynchronized()
+    final List<CustomerSimilarity> potentialDuplicates = [].asSynchronized()
     Processor dukeProcessor
+
+    static void main(String[] args) throws Exception {
+        SpringApplication.run(Application.class, args)
+    }
 
     @PostConstruct
     def init() {
         def config = ConfigLoader.load('classpath:duke-customer.xml')
         dukeProcessor = new Processor(config)
-        dukeProcessor.addMatchListener(new SimilarityMatchListener(similarities))
+        dukeProcessor.addMatchListener(new SimilarityMatchListener())
     }
 
     @PreDestroy
@@ -65,12 +49,12 @@ class Application {
      * Not requested but for debugging purposes
      */
     @RequestMapping(value="/customers", method=RequestMethod.GET)
-    def getAllCustomers() {
+    List<Customer> getAllCustomers() {
         idsToCustomers.values()
     }
 
     @RequestMapping(value="/customers", method=RequestMethod.POST)
-    def addCustomer(@RequestBody Customer customer) {
+    ResponseEntity<Customer> addCustomer(@RequestBody Customer customer) {
         UUID id = UUID.randomUUID()
         customer.id = id
         idsToCustomers[id] = customer
@@ -79,57 +63,58 @@ class Application {
     }
 
     @RequestMapping(value="/customers/{id}", method=RequestMethod.PUT)
-    def updateCustomer(@PathVariable UUID id, @RequestBody Customer customer) {
+    ResponseEntity<Customer> updateCustomer(@PathVariable UUID id, @RequestBody Customer customer) {
         if (!idsToCustomers[id]) {
             return new ResponseEntity(HttpStatus.NOT_FOUND)
         }
         customer.id = id // allow it to be blank in the body
         idsToCustomers[id] = customer
+        removeDuplicatesWithId(id)
+        deduplicate(customer)
         new ResponseEntity(customer, HttpStatus.OK)
     }
 
     @RequestMapping(value="/customers/{id}", method=RequestMethod.DELETE)
-    def deleteCustomer(@PathVariable UUID id) {
+    ResponseEntity<Void> deleteCustomer(@PathVariable UUID id) {
         if (!idsToCustomers[id]) {
             return new ResponseEntity(HttpStatus.NOT_FOUND)
         }
         idsToCustomers.remove(id)
+        removeDuplicatesWithId(id)
         new ResponseEntity(HttpStatus.NO_CONTENT)
     }
 
-    @RequestMapping(value="customerSimilarity", method=RequestMethod.GET)
-    def getSimilarCustomers() {
-        similarities
+    @RequestMapping(value="/potentialDuplicates", method=RequestMethod.GET)
+    List<CustomerSimilarity> getPotentialDuplicates() {
+        potentialDuplicates
     }
 
-    private deduplicate(Customer customer) {
+    private void deduplicate(Customer customer) {
         RecordImpl record = new RecordImpl()
-        record.addValue('id', customer.id.toString())
-        record.addValue('name', customer.name)
-        record.addValue('address1', customer.address1)
-        record.addValue('email', customer.email)
-        record.addValue('zip', customer.zip)
+        record.with {
+            addValue('id', customer.id.toString())
+            addValue('name', customer.name)
+            addValue('address1', customer.address1)
+            addValue('email', customer.email)
+            addValue('zip', customer.zip)
+        }
         dukeProcessor.deduplicate([record])
     }
 
-    static void main(String[] args) throws Exception {
-        SpringApplication.run(Application.class, args)
+    private void removeDuplicatesWithId(UUID id) {
+        potentialDuplicates.removeAll { it.customerId1 == id || it.customerId2 == id }
     }
 
-}
-
-@Canonical
-class SimilarityMatchListener extends AbstractMatchListener {
-
-    Collection similarities
-
-    void matches(Record r1, Record r2, double confidence) {
-        def newDup = new CustomerSimilarity(
-            UUID.fromString(r1.getValue('id')),
-            UUID.fromString(r2.getValue('id')),
-            new BigDecimal(confidence))
-        similarities << newDup
-        println newDup
+    private class SimilarityMatchListener extends AbstractMatchListener {
+        void matches(Record r1, Record r2, double confidence) {
+            def customer1Id = UUID.fromString(r1.getValue('id'))
+            def customer2Id = UUID.fromString(r2.getValue('id'))
+            if (idsToCustomers[customer1Id] && idsToCustomers[customer2Id]) {
+                def newDup = new CustomerSimilarity(customer1Id, customer2Id,
+                        new BigDecimal(confidence, ))
+                potentialDuplicates << newDup
+            }
+        }
     }
-
 }
+
