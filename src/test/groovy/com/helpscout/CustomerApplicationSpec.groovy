@@ -8,6 +8,8 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.web.WebAppConfiguration
 
+import com.helpscout.model.Customer;
+
 import spock.lang.Specification
 
 @ContextConfiguration(loader = SpringApplicationContextLoader.class, classes=Application)
