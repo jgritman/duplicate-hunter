@@ -1,4 +1,4 @@
-# Deduplication Service Example
+## Duplicate Hunter
 
 This is an example of a REST-ful API Service which allows CRUD operations on customer objects. It then flags potential duplicates in the database using the [Duke deduplication engine](https://github.com/larsga/Duke).
 
@@ -46,7 +46,7 @@ However, in the course my exploration, I came across Duke. It already used Lucen
 
 ### Production Considerations
 
-Besides using a real database and disk backed Lucene index, I would recommend moving to some type of asynchronous invocation of the deduplication process. This could be done by placing customer modification notifications on a message queue, so another server could pick those up and update the duplication records. Alternately, the deduplication process could run on a schedule, and pick up any records with an updated/deleted date after the last run.
+Besides using a real database and disk backed Lucene index, I would recommend moving to some type of asynchronous invocation of the deduplication process. This could be done by placing customer modification notifications on a message queue, so another server could pick those check for duplicates. Alternately, the deduplication process could run on a schedule, and pick up any records with an updated/deleted date after the last run.
 
 ### Testing
 
