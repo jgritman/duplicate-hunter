@@ -5,8 +5,11 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import com.mangofactory.swagger.plugin.EnableSwagger;
+
 @Configuration
 @EnableAutoConfiguration
+@EnableSwagger
 @ComponentScan(basePackages={"com.helpscout.controller", "com.helpscout.dao", "com.helpscout.service"})
 public class Application {
 
