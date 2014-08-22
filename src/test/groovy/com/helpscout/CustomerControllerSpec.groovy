@@ -11,6 +11,7 @@ import org.springframework.test.context.web.WebAppConfiguration
 import spock.lang.Specification
 
 import com.helpscout.controller.CustomerController
+import com.helpscout.controller.PotentialDuplicatesController;
 import com.helpscout.model.Customer
 
 @ContextConfiguration(loader = SpringApplicationContextLoader.class, classes=Application)
@@ -21,6 +22,9 @@ class CustomerControllerSpec extends Specification {
 
     @Autowired
     CustomerController customerController
+
+    @Autowired
+    PotentialDuplicatesController potentialDuplicatesController
 
     static final MORRIS = [name: "Morris B. Hartwick",
                 email: "MorrisBHartwick@teleworm.us",
@@ -38,8 +42,8 @@ class CustomerControllerSpec extends Specification {
         customerController.addCustomer(new Customer(MORRIS))
 
         then:
-        customerController.potentialDuplicates.size() == 1
-        customerController.potentialDuplicates[0].similarity > 0.98
+        potentialDuplicatesController.potentialDuplicates.size() == 1
+        potentialDuplicatesController.potentialDuplicates[0].similarity > 0.98
     }
 
     def 'should not flag different addresses'() {
@@ -48,7 +52,7 @@ class CustomerControllerSpec extends Specification {
         customerController.addCustomer(new Customer(RICHARD))
 
         then:
-        customerController.potentialDuplicates.size() == 0
+        potentialDuplicatesController.potentialDuplicates.size() == 0
     }
 
     def 'should match almost identical records'() {
@@ -61,8 +65,8 @@ class CustomerControllerSpec extends Specification {
         customerController.addCustomer(alterMorris)
 
         then:
-        customerController.potentialDuplicates.size() == 1
-        customerController.potentialDuplicates[0].similarity > 0.85
+        potentialDuplicatesController.potentialDuplicates.size() == 1
+        potentialDuplicatesController.potentialDuplicates[0].similarity > 0.85
     }
 
     def 'should flag when update duplicates the record'() {
@@ -71,13 +75,13 @@ class CustomerControllerSpec extends Specification {
         customerController.addCustomer(new Customer(RICHARD))
 
         then:
-        customerController.potentialDuplicates.size() == 0
+        potentialDuplicatesController.potentialDuplicates.size() == 0
 
         when:
         customerController.updateCustomer(customerResult.body.id, new Customer(RICHARD))
 
         then:
-        customerController.potentialDuplicates.size() == 1
+        potentialDuplicatesController.potentialDuplicates.size() == 1
     }
 
     def 'should unflag when update unduplicates the record'() {
@@ -86,13 +90,13 @@ class CustomerControllerSpec extends Specification {
         customerController.addCustomer(new Customer(MORRIS))
 
         then:
-        customerController.potentialDuplicates.size() == 1
+        potentialDuplicatesController.potentialDuplicates.size() == 1
 
         when:
         customerController.updateCustomer(customerResult.body.id, new Customer(RICHARD))
 
         then:
-        customerController.potentialDuplicates.size() == 0
+        potentialDuplicatesController.potentialDuplicates.size() == 0
     }
 
     def 'should only flag once when update reduplicates the record'() {
@@ -101,13 +105,13 @@ class CustomerControllerSpec extends Specification {
         customerController.addCustomer(new Customer(MORRIS))
 
         then:
-        customerController.potentialDuplicates.size() == 1
+        potentialDuplicatesController.potentialDuplicates.size() == 1
 
         when:
         customerController.updateCustomer(customerResult.body.id, new Customer(MORRIS))
 
         then:
-        customerController.potentialDuplicates.size() == 1
+        potentialDuplicatesController.potentialDuplicates.size() == 1
     }
 
     def 'should unflag when record deleted'() {
@@ -116,13 +120,13 @@ class CustomerControllerSpec extends Specification {
         customerController.addCustomer(new Customer(MORRIS))
 
         then:
-        customerController.potentialDuplicates.size() == 1
+        potentialDuplicatesController.potentialDuplicates.size() == 1
 
         when:
         customerController.deleteCustomer(customerResult.body.id)
 
         then:
-        customerController.potentialDuplicates.size() == 0
+        potentialDuplicatesController.potentialDuplicates.size() == 0
     }
 
     def 'should not flag deleted record'() {
@@ -132,7 +136,7 @@ class CustomerControllerSpec extends Specification {
         customerController.addCustomer(new Customer(MORRIS))
 
         then:
-        customerController.potentialDuplicates.size() == 0
+        potentialDuplicatesController.potentialDuplicates.size() == 0
     }
 
     def 'should flag multiple duplicates'() {
@@ -142,7 +146,7 @@ class CustomerControllerSpec extends Specification {
         customerController.addCustomer(new Customer(MORRIS))
 
         then:
-        customerController.potentialDuplicates.size() == 3
+        potentialDuplicatesController.potentialDuplicates.size() == 3
     }
 
 }

@@ -125,4 +125,8 @@ public class CustomerService {
         }
     }
 
+    public Customer getCustomer(Long id) {
+        return customerRepository.findOne(id);
+    }
+
 }
