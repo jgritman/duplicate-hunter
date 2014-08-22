@@ -1,9 +1,5 @@
 package com.helpscout.controller;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +16,6 @@ import com.helpscout.service.CustomerService;
 @RestController
 public class CustomerController {
 
-
     @Autowired
     private CustomerService customerService;
 
@@ -28,7 +23,7 @@ public class CustomerController {
      * Not requested but for debugging purposes
      */
     @RequestMapping(value="/customers", method=RequestMethod.GET)
-    public Collection<Customer> getAllCustomers() {
+    public Iterable<Customer> getAllCustomers() {
         return customerService.allCustomers();
     }
 
@@ -39,14 +34,14 @@ public class CustomerController {
     }
 
     @RequestMapping(value="/customers/{id}", method=RequestMethod.PUT)
-    public ResponseEntity<Customer> updateCustomer(@PathVariable UUID id, @RequestBody Customer customer) {
+    public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody Customer customer) {
         boolean exists = customerService.exists(id);
         Customer updated = customerService.upsertCustomer(id, customer);
         return new ResponseEntity<Customer>(updated, exists ? HttpStatus.OK : HttpStatus.CREATED);
     }
 
     @RequestMapping(value="/customers/{id}", method=RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteCustomer(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
         if (!customerService.exists(id)) {
             return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
         }
@@ -55,7 +50,7 @@ public class CustomerController {
     }
 
     @RequestMapping(value="/potentialDuplicates", method=RequestMethod.GET)
-    public List<CustomerSimilarity> getPotentialDuplicates() {
+    public Iterable<CustomerSimilarity> getPotentialDuplicates() {
         return customerService.getPotentialDuplicates();
     }
 

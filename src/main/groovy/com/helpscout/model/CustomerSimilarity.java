@@ -2,14 +2,34 @@ package com.helpscout.model;
 
 import java.math.BigDecimal;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
+
+@Entity
 public class CustomerSimilarity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    @OneToOne
     private Customer customer1;
+    @OneToOne
     private Customer customer2;
     private BigDecimal similarity;
 
     public Customer getCustomer1() {
         return customer1;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public void setCustomer1(Customer customer1) {
@@ -40,6 +60,7 @@ public class CustomerSimilarity {
                 + ((customer1 == null) ? 0 : customer1.hashCode());
         result = prime * result
                 + ((customer2 == null) ? 0 : customer2.hashCode());
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
         result = prime * result
                 + ((similarity == null) ? 0 : similarity.hashCode());
         return result;
@@ -64,6 +85,11 @@ public class CustomerSimilarity {
                 return false;
         } else if (!customer2.equals(other.customer2))
             return false;
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
+            return false;
         if (similarity == null) {
             if (other.similarity != null)
                 return false;
@@ -74,8 +100,9 @@ public class CustomerSimilarity {
 
     @Override
     public String toString() {
-        return "CustomerSimilarity [customer1=" + customer1 + ", customer2="
-                + customer2 + ", similarity=" + similarity + "]";
+        return "CustomerSimilarity [id=" + id + ", customer1=" + customer1
+                + ", customer2=" + customer2 + ", similarity=" + similarity
+                + "]";
     }
 
 }

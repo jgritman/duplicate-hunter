@@ -26,10 +26,12 @@ repositories {
 }
 
 dependencies {
-    compile "org.codehaus.groovy:groovy:2.3.6"
     compile "org.springframework.boot:spring-boot-starter-web"
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("com.h2database:h2")
     compile 'no.priv.garshol.duke:duke:1.2'
     compile 'com.google.guava:guava:17.0'
+    testCompile "org.codehaus.groovy:groovy:2.3.6"
     testCompile "org.springframework.boot:spring-boot-starter-test"
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
     testCompile 'org.spockframework:spock-spring:0.7-groovy-2.0'

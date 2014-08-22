@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableAutoConfiguration
-@ComponentScan(basePackages={"com.helpscout.controller", "com.helpscout.service"})
+@ComponentScan(basePackages={"com.helpscout.controller", "com.helpscout.dao", "com.helpscout.service"})
 public class Application {
 
     public static final void main(String[] args) throws Exception {
