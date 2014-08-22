@@ -16,7 +16,7 @@ The server will be running at [http://localhost:8080](http://localhost:8080) aft
 
 ### Endpoints
 
-There are `GET`, `POST`, `PUT`, and `DELETE` operations available from the `/customers` endpoint. The fields available on the customer model are:
+The JSON customer model contains the following fields:
 
 ```
 {
@@ -30,9 +30,21 @@ There are `GET`, `POST`, `PUT`, and `DELETE` operations available from the `/cus
 }
 ```
 
-Additionally there's a `GET /potentialDuplicates` endpoint returning pairs of customers that exceeded the threshold for potential match.
+The following endpoints are available to interact with the model:
 
-A [Swagger specification](https://github.com/wordnik/swagger-spec) for the API is available from [http://localhost:8080/api-docs](http://localhost:8080/api-docs).
+`GET /customers` - Return a list of all customers saved to the database
+
+`GET /customers/{id}` - Return the specified customer
+
+`POST /customers` - Insert a new customer record containing the body of this request
+
+`PUT /customers/{id}` - Insert or update an existing customer with body of this request
+
+`DELETE /customers/{id}` - Delete the specified customer
+
+`GET /potentialDuplicates` - All pairs of customers that were flagged as potential duplicates
+
+Also, a [Swagger specification](https://github.com/wordnik/swagger-spec) for the API is available from [http://localhost:8080/api-docs](http://localhost:8080/api-docs).
 
 ### Design
 
